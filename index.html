@@ -73,6 +73,19 @@
         .header-button i {
             margin: 0;
         }
+        .back-button {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1;
+            display: none;
+        }
+
         /* Secciones */
         .section {
             display: none;
@@ -80,7 +93,6 @@
         .section.active {
             display: block;
         }
-        /* Estilos del inicio de sesión eliminado */
 
         /* Estilos del pie de página */
         footer {
@@ -115,12 +127,14 @@
             font-size: 28px;
             color: #2C3E50;
         }
-        /* Estilos de la lista de conjuntos */
+        /* Centrar las cajas de asignaturas */
         .set-list {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 20px;
             padding: 20px;
+            justify-items: center;
+            justify-content: center;
         }
         .set-card {
             background-color: #fff;
@@ -525,6 +539,7 @@
 </head>
 <body>
     <header>
+        <button class="back-button" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
         <h1><i class="fas fa-book-medical"></i> Flashcards Médicas</h1>
         <div class="header-buttons">
             <button class="header-button theme-toggle-button" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
@@ -651,7 +666,6 @@
             ]
         };
 
-        // Función para obtener el ícono de un conjunto
         function getSetIcon(setName) {
             const icons = {
                 'Anatomía': 'fas fa-bone',
@@ -659,12 +673,10 @@
                 'Matemáticas': 'fas fa-square-root-alt',
                 'Ciencias Naturales': 'fas fa-leaf',
                 'Tecnología': 'fas fa-laptop-code',
-                // Añade más íconos si agregas nuevos conjuntos
             };
             return icons[setName] || 'fas fa-book';
         }
 
-        // Función para mostrar la lista de conjuntos
         function loadSets() {
             let setList = document.getElementById('set-list');
             setList.innerHTML = '';
@@ -683,12 +695,10 @@
                     </div>
                 `;
                 setList.appendChild(card);
-                // Animación
                 gsap.from(card, {duration: 0.5, y: 20, opacity: 0});
             }
         }
 
-        // Función para seleccionar un conjunto de flashcards
         let selectedSet = '';
         let reviewLevel = null;
 
@@ -702,7 +712,6 @@
             }
         }
 
-        // Función para seleccionar el nivel de revisión
         function selectReviewLevel(setName) {
             if (setName) {
                 selectedSet = setName;
@@ -712,7 +721,6 @@
             }
         }
 
-        // Función para revisar tarjetas clasificadas
         function reviewClassified(level) {
             if (selectedSet) {
                 reviewLevel = level;
@@ -722,9 +730,7 @@
             }
         }
 
-        // Función para cerrar sesión (ahora reinicia la aplicación)
         function logout() {
-            // En esta versión simplificada, logout podría reiniciar el progreso o simplemente refrescar la página
             if (confirm('¿Está seguro de que desea reiniciar el progreso?')) {
                 localStorage.removeItem('progress');
                 localStorage.removeItem('classifications');
@@ -736,44 +742,39 @@
             }
         }
 
-        // Funciones para la sección de flashcards
         let flashcards = [];
         let currentCardIndex = 0;
         let currentFace = 0; // 0: Pregunta, 1: Respuesta, 2: Explicación
 
-        // Variables para el manejo táctil
         let touchStartY = 0;
         let touchEndY = 0;
         let touchStartX = 0;
         let touchEndX = 0;
 
-        // Función para entrar en pantalla completa
         function enterFullScreen(element) {
             if (element.requestFullscreen) {
                 element.requestFullscreen();
-            } else if (element.mozRequestFullScreen) { /* Firefox */
+            } else if (element.mozRequestFullScreen) {
                 element.mozRequestFullScreen();
-            } else if (element.webkitRequestFullscreen) { /* Chrome, Safari y Opera */
+            } else if (element.webkitRequestFullscreen) {
                 element.webkitRequestFullscreen();
-            } else if (element.msRequestFullscreen) { /* IE/Edge */
+            } else if (element.msRequestFullscreen) {
                 element.msRequestFullscreen();
             }
         }
 
-        // Función para salir de pantalla completa
         function exitFullScreen() {
             if (document.exitFullscreen) {
                 document.exitFullscreen();
-            } else if (document.mozCancelFullScreen) { /* Firefox */
+            } else if (document.mozCancelFullScreen) {
                 document.mozCancelFullScreen();
-            } else if (document.webkitExitFullscreen) { /* Chrome, Safari y Opera */
+            } else if (document.webkitExitFullscreen) {
                 document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) { /* IE/Edge */
+            } else if (document.msExitFullscreen) {
                 document.msExitFullscreen();
             }
         }
 
-        // Función para alternar pantalla completa
         function toggleFullScreen() {
             let fullscreenContainer = document.getElementById('flashcard-fullscreen-container');
             if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
@@ -787,13 +788,11 @@
             }
         }
 
-        // Cargar las flashcards
         function loadFlashcards() {
             if (selectedSet && !reviewLevel) {
                 flashcards = flashcardSets[selectedSet];
                 currentCardIndex = progress[selectedSet]?.currentIndex || 0;
             } else if (selectedSet && reviewLevel) {
-                // Revisar tarjetas clasificadas del conjunto seleccionado
                 flashcards = flashcardSets[selectedSet].map((card, index) => ({...card, setName: selectedSet, originalIndex: index}));
                 flashcards = flashcards.filter((card) => {
                     let cardKey = `${selectedSet}-${card.originalIndex}`;
@@ -801,7 +800,6 @@
                 });
                 currentCardIndex = 0;
             } else if (!selectedSet && reviewLevel) {
-                // Revisar tarjetas clasificadas de todos los conjuntos
                 flashcards = [];
                 for (let setName in flashcardSets) {
                     let setFlashcards = flashcardSets[setName].map((card, index) => ({...card, setName: setName, originalIndex: index}));
@@ -822,7 +820,6 @@
             showFlashcard();
         }
 
-        // Mostrar la flashcard actual
         function showFlashcard() {
             let container = document.getElementById('flashcard-container');
             container.innerHTML = '';
@@ -830,16 +827,13 @@
             let flashcard = createFlashcard(cardData);
             container.appendChild(flashcard);
             updateProgress();
-            // Animación de entrada
             gsap.from(flashcard, {duration: 0.5, opacity: 0, y: 50});
         }
 
-        // Función para crear una flashcard
         function createFlashcard(cardData) {
             let flashcard = document.createElement('div');
             flashcard.className = 'flashcard';
 
-            // Caras de la tarjeta
             let front = document.createElement('div');
             front.className = 'card face front visible';
             front.innerHTML = `<h2><i class="fas fa-question-circle"></i> ${cardData.question}</h2>`;
@@ -856,30 +850,25 @@
             flashcard.appendChild(back);
             flashcard.appendChild(explanation);
 
-            // Indicador de cara
             let faceIndicator = document.createElement('div');
             faceIndicator.className = 'face-indicator';
             faceIndicator.innerHTML = `<i class="fas fa-question-circle"></i> Pregunta`;
 
             flashcard.appendChild(faceIndicator);
 
-            // Añadir eventos táctiles
             flashcard.addEventListener('touchstart', handleTouchStart, false);
             flashcard.addEventListener('touchmove', handleTouchMove, false);
             flashcard.addEventListener('touchend', handleTouchEnd, false);
 
-            // Añadir evento de clic para cuadrantes
             flashcard.addEventListener('click', handleFlashcardClick);
 
             return flashcard;
         }
 
-        // Actualizar barra de progreso
         function updateProgress() {
             let progressElement = document.getElementById('progress');
             let progressValue = ((currentCardIndex + 1) / flashcards.length) * 100;
             progressElement.style.width = progressValue + '%';
-            // Actualizar progreso global
             if (selectedSet && !reviewLevel) {
                 progress[selectedSet] = {
                     totalReviewed: Math.max(progress[selectedSet]?.totalReviewed || 0, currentCardIndex + 1),
@@ -889,58 +878,65 @@
             }
         }
 
-        // Función para manejar clics en la flashcard dividida en cuadrantes
         function handleFlashcardClick(event) {
             let flashcard = event.currentTarget;
             let rect = flashcard.getBoundingClientRect();
-            let x = event.clientX - rect.left; // posición X relativa al flashcard
-            let y = event.clientY - rect.top;  // posición Y relativa al flashcard
+            let x = event.clientX - rect.left;
+            let y = event.clientY - rect.top;
 
             let width = rect.width;
             let height = rect.height;
 
-            // Calcular en qué cuadrante se hizo clic
             let col = Math.floor((x / width) * 3);
             let row = Math.floor((y / height) * 3);
 
-            if (row === 1 && col === 1) {
-                // Cuadrante central - Cambiar a la siguiente cara
-                flipCard('next');
-            } else if (row === 1 && col === 0) {
-                // Fila central, columna izquierda - Cambiar a la cara anterior
-                flipCard('prev');
-            } else if (row === 1 && col === 2) {
-                // Fila central, columna derecha - Cambiar a la siguiente cara
-                flipCard('next');
-            } else if (row === 0) {
-                // Fila superior - Flashcard anterior
+            // Cuadrantes:
+            // Fila superior (row=0): Tarjeta anterior
+            if (row === 0) {
                 changeCard('prev');
-            } else if (row === 2) {
-                // Fila inferior - Flashcard siguiente
-                changeCard('next');
-            } else {
-                // Otros cuadrantes - Por defecto, cambiar a la siguiente cara
-                flipCard('next');
+                return;
             }
+
+            // Fila inferior (row=2): Tarjeta siguiente
+            if (row === 2) {
+                changeCard('next');
+                return;
+            }
+
+            // Fila central (row=1), columna izquierda (col=0): cara anterior
+            if (row === 1 && col === 0) {
+                flipCard('prev');
+                return;
+            }
+
+            // Fila central (row=1), columna central (col=1): siguiente cara
+            if (row === 1 && col === 1) {
+                flipCard('next');
+                return;
+            }
+
+            // Fila central (row=1), columna derecha (col=2): siguiente cara
+            if (row === 1 && col === 2) {
+                flipCard('next');
+                return;
+            }
+
+            // Si por alguna razón no cae en ningún caso (no debería suceder), no hacer nada
         }
 
-        // Cambiar de cara
         function flipCard(direction) {
             let flashcard = document.querySelector('.flashcard');
             let faceIndicator = flashcard.querySelector('.face-indicator');
             let faces = flashcard.querySelectorAll('.face');
 
-            // Aplicar animación de rotación
             let rotationY = direction === 'next' ? 90 : -90;
             gsap.to(flashcard, {rotationY: rotationY, duration: 0.3, ease: 'power1.in', onComplete: () => {
-                // Actualizar cara actual
                 if (direction === 'next') {
                     currentFace = (currentFace + 1) % faces.length;
                 } else {
                     currentFace = (currentFace - 1 + faces.length) % faces.length;
                 }
 
-                // Actualizar visibilidad de las caras
                 faces.forEach((face, index) => {
                     face.classList.remove('visible');
                     if (index === currentFace) {
@@ -948,7 +944,6 @@
                     }
                 });
 
-                // Actualizar indicador de cara
                 switch (currentFace) {
                     case 0:
                         faceIndicator.innerHTML = `<i class="fas fa-question-circle"></i> Pregunta`;
@@ -961,12 +956,10 @@
                         break;
                 }
 
-                // Completar animación de rotación
                 gsap.to(flashcard, {rotationY: 0, duration: 0.3, ease: 'power1.out'});
             }});
         }
 
-        // Cambiar de flashcard
         function changeCard(direction) {
             if (direction === 'next') {
                 currentCardIndex = (currentCardIndex + 1) % flashcards.length;
@@ -978,7 +971,6 @@
             updateProgress();
         }
 
-        // Clasificar tarjeta
         function classifyCard(level) {
             let cardData = flashcards[currentCardIndex];
             let setName = cardData.setName || selectedSet;
@@ -989,7 +981,6 @@
             showNotification(`Tarjeta clasificada como ${level}`, 'success');
         }
 
-        // Manejo de eventos táctiles
         function handleTouchStart(event) {
             touchStartY = event.touches[0].clientY;
             touchStartX = event.touches[0].clientX;
@@ -1002,14 +993,12 @@
             let deltaY = touchEndY - touchStartY;
             let deltaX = touchEndX - touchStartX;
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                // Movimiento horizontal
                 if (deltaX > 50) {
                     flipCard('prev');
                 } else if (deltaX < -50) {
                     flipCard('next');
                 }
             } else {
-                // Movimiento vertical
                 if (deltaY > 50) {
                     changeCard('prev');
                 } else if (deltaY < -50) {
@@ -1018,7 +1007,6 @@
             }
         }
 
-        // Función para alternar tema día/noche
         function toggleTheme() {
             if (theme === 'day') {
                 document.body.classList.add('night-mode');
@@ -1034,7 +1022,6 @@
             localStorage.setItem('theme', theme);
         }
 
-        // Función para aplicar el tema al cargar
         function applyTheme() {
             if (theme === 'night') {
                 document.body.classList.add('night-mode');
@@ -1047,7 +1034,6 @@
             }
         }
 
-        // Función para mostrar notificaciones personalizadas
         function showNotification(message, type) {
             let notificationContainer = document.getElementById('notification-container');
             let notification = document.createElement('div');
@@ -1059,11 +1045,9 @@
             }
             notification.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
             notificationContainer.appendChild(notification);
-            // Mostrar notificación
             setTimeout(() => {
                 notification.classList.add('show');
             }, 100);
-            // Ocultar y eliminar notificación
             setTimeout(() => {
                 notification.classList.remove('show');
                 setTimeout(() => {
@@ -1072,7 +1056,6 @@
             }, 3000);
         }
 
-        // Función para regresar y limpiar el nivel de revisión
         function goBack() {
             if (document.getElementById('flashcard-section').classList.contains('active')) {
                 reviewLevel = null;
@@ -1085,29 +1068,31 @@
             }
         }
 
-        // Función para mostrar una sección
         function showSection(sectionId) {
-            // Ocultar todas las secciones
             document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
-            // Mostrar la sección seleccionada
             document.getElementById(sectionId).classList.add('active');
+
             // Mostrar u ocultar botones según la sección
+            const backButton = document.querySelector('.back-button');
             if (sectionId === 'main-section') {
                 document.getElementById('logout-button').style.display = 'block';
-                document.querySelector('.header-buttons .fullscreen-button').style.display = 'block';
+                document.querySelector('.fullscreen-button').style.display = 'block';
+                backButton.style.display = 'none';
             } else if (sectionId === 'flashcard-section') {
-                document.querySelector('.header-buttons .fullscreen-button').style.display = 'block';
+                document.querySelector('.fullscreen-button').style.display = 'block';
                 document.getElementById('logout-button').style.display = 'none';
+                backButton.style.display = 'block';
             } else if (sectionId === 'review-level-section') {
-                document.querySelector('.header-buttons .fullscreen-button').style.display = 'block';
+                document.querySelector('.fullscreen-button').style.display = 'block';
                 document.getElementById('logout-button').style.display = 'none';
+                backButton.style.display = 'block';
             } else {
                 document.getElementById('logout-button').style.display = 'none';
-                document.querySelector('.header-buttons .fullscreen-button').style.display = 'none';
+                document.querySelector('.fullscreen-button').style.display = 'none';
+                backButton.style.display = 'none';
             }
         }
 
-        // Inicialización
         window.onload = () => {
             showSection('main-section');
             loadSets();
