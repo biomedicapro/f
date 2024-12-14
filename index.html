@@ -18,6 +18,7 @@
             background-color: #f0f4f8;
             color: #333;
             overflow-x: hidden;
+            padding-top: 70px; /* Deja espacio para el header fijo */
         }
         /* Estilos del header */
         header {
@@ -25,12 +26,16 @@
             color: #fff;
             padding: 15px;
             text-align: center;
-            position: relative;
+            position: fixed;
+            top:0;
+            left:0;
+            width:100%;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            z-index: 9999;
         }
         header::after {
             content: '';
@@ -303,6 +308,7 @@
             z-index: 0;
             transition: opacity 0.4s ease;
             transform-style: preserve-3d;
+            text-align: center;
         }
         .card.visible {
             opacity: 1;
@@ -310,10 +316,8 @@
         }
         .card h2 {
             margin: 0;
-            font-size: 28px;
-            color: #2C3E50;
-            text-align: center;
-            line-height: 1.4;
+            width: 100%;
+            word-wrap: break-word;
         }
         .front {
             background-color: #3498DB;
@@ -335,9 +339,10 @@
             transform: translateX(-50%);
             display: flex;
             gap: 15px;
-            z-index: 2;
-            flex-wrap: wrap;
             justify-content: center;
+            align-items: center;
+            flex-wrap: nowrap; /* No se apilen uno encima de otro */
+            z-index: 2;
         }
         .classification button {
             padding: 14px 22px;
@@ -350,6 +355,7 @@
             display: flex;
             align-items: center;
             transition: background-color 0.3s;
+            white-space: nowrap;
         }
         .classification button i {
             margin-right: 10px;
@@ -519,7 +525,6 @@
             color: #333 !important;
         }
 
-        /* Sin cambiar a columna en pantallas pequeñas para las categorías de dificultad */
         @media (max-width: 768px) {
             .set-list {
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -604,12 +609,10 @@
     </footer>
 
     <script>
-        // Variables globales simplificadas
         let progress = JSON.parse(localStorage.getItem('progress')) || {};
         let classifications = JSON.parse(localStorage.getItem('classifications')) || {};
         let theme = localStorage.getItem('theme') || 'day';
 
-        // Datos de flashcards integrados
         let flashcardSets = {
             'Anatomía': [
                 {question: '¿Qué hueso conecta el hombro con el codo?', answer: 'El húmero.', explanation: 'Es un hueso largo del brazo.'},
@@ -639,39 +642,50 @@
                 {question: '¿Qué es un número primo?', answer: 'Un número divisible solo por 1 y por sí mismo.', explanation: 'Ejemplos: 2, 3, 5, 7.'},
                 {question: '¿Cuál es el resultado de 7 x 8?', answer: '56.', explanation: 'Es una multiplicación básica.'},
                 {question: '¿Qué es el Teorema de Pitágoras?', answer: 'A² + B² = C².', explanation: 'Aplica en triángulos rectángulos.'},
-                {question: '¿Qué significa "π" en matemáticas?', answer: 'Es una constante que representa la relación entre la circunferencia y el diámetro.', explanation: 'Su valor es aproximadamente 3.1416.'},
+                {question: '¿Qué significa "π" en matemáticas?', answer: 'Es una constante que representa la relación entre la circunferencia y el diámetro.', explanation: 'Aproximadamente 3.1416.'},
                 {question: '¿Cuál es la derivada de x²?', answer: '2x.', explanation: 'Es una operación básica en cálculo diferencial.'},
                 {question: '¿Qué es un ángulo recto?', answer: 'Un ángulo de 90 grados.', explanation: 'Es un ángulo común en geometría.'},
                 {question: '¿Cuál es el valor de √64?', answer: '8.', explanation: 'Es la raíz cuadrada de 64.'},
-                {question: '¿Qué es una función lineal?', answer: 'Una función cuya gráfica es una línea recta.', explanation: 'Ejemplo: y = mx + b.'},
-                {question: '¿Cuál es el factorial de 5?', answer: '120.', explanation: 'Se calcula como 5x4x3x2x1.'},
-                {question: '¿Qué es una fracción impropia?', answer: 'Una fracción cuyo numerador es mayor que el denominador.', explanation: 'Ejemplo: 7/4.'}
+                {question: '¿Qué es una función lineal?', answer: 'Una función cuya gráfica es una línea recta.', explanation: 'Ej: y = mx + b.'},
+                {question: '¿Cuál es el factorial de 5?', answer: '120.', explanation: '5x4x3x2x1.'},
+                {question: '¿Qué es una fracción impropia?', answer: 'Una fracción cuyo numerador es mayor que el denominador.', explanation: 'Ej: 7/4.'}
             ],
             'Ciencias Naturales': [
-                {question: '¿Qué gas es esencial para la respiración?', answer: 'El oxígeno.', explanation: 'Es utilizado por las células para obtener energía.'},
-                {question: '¿Qué planeta es conocido como el planeta rojo?', answer: 'Marte.', explanation: 'Se debe a la presencia de óxido de hierro en su superficie.'},
+                {question: '¿Qué gas es esencial para la respiración?', answer: 'El oxígeno.', explanation: 'Utilizado por las células para energía.'},
+                {question: '¿Qué planeta es el planeta rojo?', answer: 'Marte.', explanation: 'Por el óxido de hierro en su superficie.'},
                 {question: '¿Cuál es la fuente principal de energía en la Tierra?', answer: 'El Sol.', explanation: 'Proporciona luz y calor.'},
-                {question: '¿Qué estudia la botánica?', answer: 'Las plantas.', explanation: 'Es una rama de la biología.'},
-                {question: '¿Qué es el ciclo del agua?', answer: 'El movimiento continuo del agua en la Tierra.', explanation: 'Incluye evaporación, condensación y precipitación.'},
-                {question: '¿Qué órgano controla el cuerpo humano?', answer: 'El cerebro.', explanation: 'Es el centro del sistema nervioso.'},
-                {question: '¿Qué metal es líquido a temperatura ambiente?', answer: 'El mercurio.', explanation: 'Es el único metal líquido a temperatura ambiente.'},
-                {question: '¿Qué es la fotosíntesis?', answer: 'Un proceso por el cual las plantas convierten luz en energía.', explanation: 'Utilizan dióxido de carbono y agua.'},
-                {question: '¿Qué es un ecosistema?', answer: 'Una comunidad de seres vivos y su entorno.', explanation: 'Incluye factores bióticos y abióticos.'},
-                {question: '¿Cuál es el estado del agua a 100°C?', answer: 'Gaseoso.', explanation: 'A esta temperatura el agua hierve y se convierte en vapor.'}
+                {question: '¿Qué estudia la botánica?', answer: 'Las plantas.', explanation: 'Rama de la biología.'},
+                {question: '¿Qué es el ciclo del agua?', answer: 'El movimiento continuo del agua en la Tierra.', explanation: 'Evaporación, condensación y precipitación.'},
+                {question: '¿Qué órgano controla el cuerpo humano?', answer: 'El cerebro.', explanation: 'Centro del sistema nervioso.'},
+                {question: '¿Qué metal es líquido a temperatura ambiente?', answer: 'El mercurio.', explanation: 'Único metal líquido a temp. ambiente.'},
+                {question: '¿Qué es la fotosíntesis?', answer: 'Proceso por el cual las plantas convierten luz en energía.', explanation: 'Usan CO2 y agua.'},
+                {question: '¿Qué es un ecosistema?', answer: 'Comunidad de seres vivos y su entorno.', explanation: 'Incluye factores bióticos y abióticos.'},
+                {question: '¿A 100°C el agua está en estado?', answer: 'Gaseoso.', explanation: 'Hierve y se convierte en vapor.'}
             ],
             'Tecnología': [
-                {question: '¿Qué significa "HTML"?', answer: 'HyperText Markup Language.', explanation: 'Es el lenguaje estándar para crear páginas web.'},
-                {question: '¿Qué es un algoritmo?', answer: 'Un conjunto de pasos para resolver un problema.', explanation: 'Es fundamental en programación.'},
-                {question: '¿Qué significa "IoT"?', answer: 'Internet of Things.', explanation: 'Se refiere a dispositivos conectados a internet.'},
-                {question: '¿Qué es la inteligencia artificial?', answer: 'La simulación de procesos humanos por máquinas.', explanation: 'Incluye aprendizaje, razonamiento y autocorrección.'},
-                {question: '¿Qué es un sistema operativo?', answer: 'Software que gestiona el hardware y software de una computadora.', explanation: 'Ejemplos: Windows, macOS, Linux.'},
-                {question: '¿Qué significa "CSS"?', answer: 'Cascading Style Sheets.', explanation: 'Se utiliza para diseñar páginas web.'},
-                {question: '¿Qué es un lenguaje de programación?', answer: 'Un lenguaje que permite escribir instrucciones para computadoras.', explanation: 'Ejemplos: Python, Java, C++.'},
-                {question: '¿Qué es el Big Data?', answer: 'Conjunto de datos masivos y complejos.', explanation: 'Requieren tecnologías especiales para su análisis.'},
-                {question: '¿Qué significa "HTTP"?', answer: 'Hypertext Transfer Protocol.', explanation: 'Es el protocolo usado para la comunicación en la web.'},
-                {question: '¿Qué es la nube informática?', answer: 'Almacenamiento y acceso a datos en internet.', explanation: 'Ejemplos: Google Drive, Dropbox.'}
+                {question: '¿Qué significa "HTML"?', answer: 'HyperText Markup Language.', explanation: 'Lenguaje estándar para crear páginas web.'},
+                {question: '¿Qué es un algoritmo?', answer: 'Un conjunto de pasos para resolver un problema.', explanation: 'Fundamental en programación.'},
+                {question: '¿Qué significa "IoT"?', answer: 'Internet of Things.', explanation: 'Dispositivos conectados a internet.'},
+                {question: '¿Qué es la inteligencia artificial?', answer: 'Simulación de procesos humanos por máquinas.', explanation: 'Incluye aprendizaje, razonamiento, autocorrección.'},
+                {question: '¿Qué es un sistema operativo?', answer: 'Software que gestiona hardware y software.', explanation: 'Ej: Windows, macOS, Linux.'},
+                {question: '¿Qué significa "CSS"?', answer: 'Cascading Style Sheets.', explanation: 'Diseño de páginas web.'},
+                {question: '¿Qué es un lenguaje de programación?', answer: 'Lenguaje para dar instrucciones a computadoras.', explanation: 'Ej: Python, Java, C++.'},
+                {question: '¿Qué es el Big Data?', answer: 'Conjunto de datos masivos.', explanation: 'Requieren tecnologías especiales.'},
+                {question: '¿Qué significa "HTTP"?', answer: 'Hypertext Transfer Protocol.', explanation: 'Protocolo de la web.'},
+                {question: '¿Qué es la nube informática?', answer: 'Almacenamiento y acceso a datos en internet.', explanation: 'Ej: Google Drive, Dropbox.'}
             ]
         };
+
+        let selectedSet = '';
+        let reviewLevel = null;
+        let flashcards = [];
+        let currentCardIndex = 0;
+        let currentFace = 0;
+
+        let touchStartY = 0;
+        let touchEndY = 0;
+        let touchStartX = 0;
+        let touchEndX = 0;
 
         function getSetIcon(setName) {
             const icons = {
@@ -705,17 +719,6 @@
                 gsap.from(card, {duration: 0.5, y: 20, opacity: 0});
             }
         }
-
-        let selectedSet = '';
-        let reviewLevel = null;
-        let flashcards = [];
-        let currentCardIndex = 0;
-        let currentFace = 0;
-
-        let touchStartY = 0;
-        let touchEndY = 0;
-        let touchStartX = 0;
-        let touchEndX = 0;
 
         function selectSet(setName) {
             if (setName) {
@@ -757,15 +760,15 @@
             }
         }
 
-        function enterFullScreen(element) {
-            if (element.requestFullscreen) {
-                element.requestFullscreen();
-            } else if (element.mozRequestFullScreen) {
-                element.mozRequestFullScreen();
-            } else if (element.webkitRequestFullscreen) {
-                element.webkitRequestFullscreen();
-            } else if (element.msRequestFullscreen) {
-                element.msRequestFullscreen();
+        function toggleFullScreen() {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+                document.documentElement.requestFullscreen();
+                document.querySelector('.fullscreen-button i').classList.remove('fa-expand');
+                document.querySelector('.fullscreen-button i').classList.add('fa-compress');
+            } else {
+                exitFullScreen();
+                document.querySelector('.fullscreen-button i').classList.remove('fa-compress');
+                document.querySelector('.fullscreen-button i').classList.add('fa-expand');
             }
         }
 
@@ -778,19 +781,6 @@
                 document.webkitExitFullscreen();
             } else if (document.msExitFullscreen) {
                 document.msExitFullscreen();
-            }
-        }
-
-        function toggleFullScreen() {
-            let fullscreenContainer = document.getElementById('flashcard-fullscreen-container');
-            if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
-                enterFullScreen(fullscreenContainer);
-                document.querySelector('.fullscreen-button i').classList.remove('fa-expand');
-                document.querySelector('.fullscreen-button i').classList.add('fa-compress');
-            } else {
-                exitFullScreen();
-                document.querySelector('.fullscreen-button i').classList.remove('fa-compress');
-                document.querySelector('.fullscreen-button i').classList.add('fa-expand');
             }
         }
 
@@ -836,6 +826,24 @@
             container.appendChild(flashcard);
             updateProgress();
             gsap.from(flashcard, {duration: 0.5, opacity: 0, y: 50});
+            fitText(flashcard);
+        }
+
+        // Ajusta el texto para que quepa en la tarjeta
+        function fitText(flashcard) {
+            const textElements = flashcard.querySelectorAll('h2');
+            textElements.forEach(el => {
+                let parent = el.parentNode;
+                let fontSize = 36;
+                el.style.fontSize = fontSize + 'px';
+                el.style.lineHeight = '1.2';
+                el.style.overflow = 'visible';
+                // Reducir tamaño hasta que quepa
+                while ((el.scrollWidth > parent.clientWidth - 20 || el.scrollHeight > parent.clientHeight - 20) && fontSize > 10) {
+                    fontSize -= 1;
+                    el.style.fontSize = fontSize + 'px';
+                }
+            });
         }
 
         function createFlashcard(cardData) {
@@ -867,8 +875,7 @@
             flashcard.addEventListener('touchmove', handleTouchMove, false);
             flashcard.addEventListener('touchend', handleTouchEnd, false);
 
-            // Lógica de clic: top -> tarjeta anterior, bottom -> tarjeta siguiente
-            // Centro dividido en 2: izquierda (cara anterior), derecha (cara siguiente)
+            // Clic intuitivo:
             flashcard.addEventListener('click', (e) => {
                 let rect = flashcard.getBoundingClientRect();
                 let x = e.clientX - rect.left;
@@ -952,10 +959,11 @@
                 }
 
                 gsap.to(flashcard, {rotationY: 0, duration: 0.3, ease: 'power1.out'});
+                fitText(flashcard); // Ajustar texto tras cambiar cara
             }});
         }
 
-        // No navegación circular
+        // Navegación no circular
         function changeCard(direction) {
             if (direction === 'next') {
                 if (currentCardIndex < flashcards.length - 1) {
@@ -1062,7 +1070,6 @@
         function goBack() {
             if (document.getElementById('flashcard-section').classList.contains('active') ||
                 document.getElementById('review-level-section').classList.contains('active')) {
-                // Al volver a la sección principal se refresca el listado y el conteo
                 showSection('main-section');
                 loadSets();
             } else {
