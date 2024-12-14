@@ -127,6 +127,7 @@
             font-size: 28px;
             color: #2C3E50;
         }
+
         /* Centrar las cajas de asignaturas */
         .set-list {
             display: grid;
@@ -508,7 +509,17 @@
         body.night-mode footer {
             color: #fff;
         }
-        /* Estilos para dispositivos móviles */
+
+        /* En pantalla completa modo día: iconos oscuros en clasificación */
+        body:not(.night-mode):fullscreen .classification button {
+            background-color: #fff !important;
+            color: #333 !important;
+        }
+        body:not(.night-mode):fullscreen .classification button i {
+            color: #333 !important;
+        }
+
+        /* Sin cambiar a columna en pantallas pequeñas para las categorías de dificultad */
         @media (max-width: 768px) {
             .set-list {
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -522,10 +533,6 @@
             }
             .card h2 {
                 font-size: 24px;
-            }
-            .classification {
-                flex-direction: column;
-                bottom: 80px;
             }
             .notification-container {
                 top: auto;
@@ -681,8 +688,8 @@
             let setList = document.getElementById('set-list');
             setList.innerHTML = '';
             for (let setName in flashcardSets) {
-                let totalReviewed = progress[setName]?.totalReviewed || 0;
                 let totalCards = flashcardSets[setName].length;
+                let totalReviewed = progress[setName]?.totalReviewed || 0;
                 let card = document.createElement('div');
                 card.className = 'set-card';
                 card.innerHTML = `
@@ -701,6 +708,14 @@
 
         let selectedSet = '';
         let reviewLevel = null;
+        let flashcards = [];
+        let currentCardIndex = 0;
+        let currentFace = 0;
+
+        let touchStartY = 0;
+        let touchEndY = 0;
+        let touchStartX = 0;
+        let touchEndX = 0;
 
         function selectSet(setName) {
             if (setName) {
@@ -741,15 +756,6 @@
                 showNotification('Progreso reiniciado.', 'success');
             }
         }
-
-        let flashcards = [];
-        let currentCardIndex = 0;
-        let currentFace = 0; // 0: Pregunta, 1: Respuesta, 2: Explicación
-
-        let touchStartY = 0;
-        let touchEndY = 0;
-        let touchStartX = 0;
-        let touchEndX = 0;
 
         function enterFullScreen(element) {
             if (element.requestFullscreen) {
@@ -811,11 +817,13 @@
                 }
                 currentCardIndex = 0;
             }
+
             if (flashcards.length === 0) {
                 showNotification('No hay tarjetas para mostrar.', 'error');
                 goBack();
                 return;
             }
+
             currentFace = 0;
             showFlashcard();
         }
@@ -853,14 +861,45 @@
             let faceIndicator = document.createElement('div');
             faceIndicator.className = 'face-indicator';
             faceIndicator.innerHTML = `<i class="fas fa-question-circle"></i> Pregunta`;
-
             flashcard.appendChild(faceIndicator);
 
             flashcard.addEventListener('touchstart', handleTouchStart, false);
             flashcard.addEventListener('touchmove', handleTouchMove, false);
             flashcard.addEventListener('touchend', handleTouchEnd, false);
 
-            flashcard.addEventListener('click', handleFlashcardClick);
+            // Lógica de clic: top -> tarjeta anterior, bottom -> tarjeta siguiente
+            // Centro dividido en 2: izquierda (cara anterior), derecha (cara siguiente)
+            flashcard.addEventListener('click', (e) => {
+                let rect = flashcard.getBoundingClientRect();
+                let x = e.clientX - rect.left;
+                let y = e.clientY - rect.top;
+                let width = rect.width;
+                let height = rect.height;
+
+                let topZone = height * 0.2;
+                let bottomZone = height * 0.8;
+
+                if (y < topZone) {
+                    // Arriba: tarjeta anterior
+                    changeCard('prev');
+                    return;
+                }
+                if (y > bottomZone) {
+                    // Abajo: tarjeta siguiente
+                    changeCard('next');
+                    return;
+                }
+
+                // Zona media
+                let midLeft = width / 2;
+                if (x < midLeft) {
+                    // Izquierda: cara anterior
+                    flipCard('prev');
+                } else {
+                    // Derecha: cara siguiente
+                    flipCard('next');
+                }
+            });
 
             return flashcard;
         }
@@ -869,59 +908,15 @@
             let progressElement = document.getElementById('progress');
             let progressValue = ((currentCardIndex + 1) / flashcards.length) * 100;
             progressElement.style.width = progressValue + '%';
+
             if (selectedSet && !reviewLevel) {
+                let currentReviewed = Math.max(progress[selectedSet]?.totalReviewed || 0, currentCardIndex + 1);
                 progress[selectedSet] = {
-                    totalReviewed: Math.max(progress[selectedSet]?.totalReviewed || 0, currentCardIndex + 1),
+                    totalReviewed: currentReviewed,
                     currentIndex: currentCardIndex
                 };
                 localStorage.setItem('progress', JSON.stringify(progress));
             }
-        }
-
-        function handleFlashcardClick(event) {
-            let flashcard = event.currentTarget;
-            let rect = flashcard.getBoundingClientRect();
-            let x = event.clientX - rect.left;
-            let y = event.clientY - rect.top;
-
-            let width = rect.width;
-            let height = rect.height;
-
-            let col = Math.floor((x / width) * 3);
-            let row = Math.floor((y / height) * 3);
-
-            // Cuadrantes:
-            // Fila superior (row=0): Tarjeta anterior
-            if (row === 0) {
-                changeCard('prev');
-                return;
-            }
-
-            // Fila inferior (row=2): Tarjeta siguiente
-            if (row === 2) {
-                changeCard('next');
-                return;
-            }
-
-            // Fila central (row=1), columna izquierda (col=0): cara anterior
-            if (row === 1 && col === 0) {
-                flipCard('prev');
-                return;
-            }
-
-            // Fila central (row=1), columna central (col=1): siguiente cara
-            if (row === 1 && col === 1) {
-                flipCard('next');
-                return;
-            }
-
-            // Fila central (row=1), columna derecha (col=2): siguiente cara
-            if (row === 1 && col === 2) {
-                flipCard('next');
-                return;
-            }
-
-            // Si por alguna razón no cae en ningún caso (no debería suceder), no hacer nada
         }
 
         function flipCard(direction) {
@@ -960,15 +955,23 @@
             }});
         }
 
+        // No navegación circular
         function changeCard(direction) {
             if (direction === 'next') {
-                currentCardIndex = (currentCardIndex + 1) % flashcards.length;
+                if (currentCardIndex < flashcards.length - 1) {
+                    currentCardIndex++;
+                    currentFace = 0;
+                    showFlashcard();
+                    updateProgress();
+                }
             } else {
-                currentCardIndex = (currentCardIndex - 1 + flashcards.length) % flashcards.length;
+                if (currentCardIndex > 0) {
+                    currentCardIndex--;
+                    currentFace = 0;
+                    showFlashcard();
+                    updateProgress();
+                }
             }
-            currentFace = 0;
-            showFlashcard();
-            updateProgress();
         }
 
         function classifyCard(level) {
@@ -1057,14 +1060,14 @@
         }
 
         function goBack() {
-            if (document.getElementById('flashcard-section').classList.contains('active')) {
-                reviewLevel = null;
-                selectedSet = '';
+            if (document.getElementById('flashcard-section').classList.contains('active') ||
+                document.getElementById('review-level-section').classList.contains('active')) {
+                // Al volver a la sección principal se refresca el listado y el conteo
                 showSection('main-section');
-            } else if (document.getElementById('review-level-section').classList.contains('active')) {
-                showSection('main-section');
+                loadSets();
             } else {
                 showSection('main-section');
+                loadSets();
             }
         }
 
@@ -1072,17 +1075,12 @@
             document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
             document.getElementById(sectionId).classList.add('active');
 
-            // Mostrar u ocultar botones según la sección
             const backButton = document.querySelector('.back-button');
             if (sectionId === 'main-section') {
                 document.getElementById('logout-button').style.display = 'block';
                 document.querySelector('.fullscreen-button').style.display = 'block';
                 backButton.style.display = 'none';
-            } else if (sectionId === 'flashcard-section') {
-                document.querySelector('.fullscreen-button').style.display = 'block';
-                document.getElementById('logout-button').style.display = 'none';
-                backButton.style.display = 'block';
-            } else if (sectionId === 'review-level-section') {
+            } else if (sectionId === 'flashcard-section' || sectionId === 'review-level-section') {
                 document.querySelector('.fullscreen-button').style.display = 'block';
                 document.getElementById('logout-button').style.display = 'none';
                 backButton.style.display = 'block';
