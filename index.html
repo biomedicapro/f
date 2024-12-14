@@ -314,6 +314,7 @@
             color: #2C3E50;
             text-align: center;
             line-height: 1.4;
+            word-wrap: break-word;
         }
         .front {
             background-color: #3498DB;
@@ -505,10 +506,6 @@
         body.night-mode .classification .hard:hover {
             background-color: #A93226;
         }
-        body.night-mode .main-section h3,
-        body.night-mode footer {
-            color: #fff;
-        }
 
         /* En pantalla completa modo día: iconos oscuros en clasificación */
         body:not(.night-mode):fullscreen .classification button {
@@ -636,7 +633,7 @@
                 {question: '¿Qué tratado puso fin a la Primera Guerra Mundial?', answer: 'El Tratado de Versalles.', explanation: 'Fue firmado en 1919.'}
             ],
             'Matemáticas': [
-                {question: '¿Qué es un número primo?', answer: 'Un número divisible solo por 1 y por sí mismo.', explanation: 'Ejemplos: 2, 3, 5, 7.'},
+                {question: '¿Qué es un número primo?', answer: 'Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.Un número divisible solo por 1 y por sí mismo.', explanation: 'Ejemplos: 2, 3, 5, 7.'},
                 {question: '¿Cuál es el resultado de 7 x 8?', answer: '56.', explanation: 'Es una multiplicación básica.'},
                 {question: '¿Qué es el Teorema de Pitágoras?', answer: 'A² + B² = C².', explanation: 'Aplica en triángulos rectángulos.'},
                 {question: '¿Qué significa "π" en matemáticas?', answer: 'Es una constante que representa la relación entre la circunferencia y el diámetro.', explanation: 'Su valor es aproximadamente 3.1416.'},
@@ -673,6 +670,7 @@
             ]
         };
 
+        // Función para obtener el ícono de un conjunto
         function getSetIcon(setName) {
             const icons = {
                 'Anatomía': 'fas fa-bone',
@@ -684,6 +682,7 @@
             return icons[setName] || 'fas fa-book';
         }
 
+        // Función para mostrar la lista de conjuntos
         function loadSets() {
             let setList = document.getElementById('set-list');
             setList.innerHTML = '';
@@ -717,6 +716,7 @@
         let touchStartX = 0;
         let touchEndX = 0;
 
+        // Función para seleccionar un conjunto de flashcards
         function selectSet(setName) {
             if (setName) {
                 selectedSet = setName;
@@ -727,6 +727,7 @@
             }
         }
 
+        // Función para seleccionar el nivel de revisión
         function selectReviewLevel(setName) {
             if (setName) {
                 selectedSet = setName;
@@ -736,6 +737,7 @@
             }
         }
 
+        // Función para revisar tarjetas clasificadas
         function reviewClassified(level) {
             if (selectedSet) {
                 reviewLevel = level;
@@ -745,6 +747,7 @@
             }
         }
 
+        // Función para cerrar sesión (reiniciar progreso)
         function logout() {
             if (confirm('¿Está seguro de que desea reiniciar el progreso?')) {
                 localStorage.removeItem('progress');
@@ -757,6 +760,7 @@
             }
         }
 
+        // Funciones para la pantalla completa
         function enterFullScreen(element) {
             if (element.requestFullscreen) {
                 element.requestFullscreen();
@@ -782,6 +786,13 @@
         }
 
         function toggleFullScreen() {
+            let activeSection = document.querySelector('.section.active').id;
+            // Solo permitir pantalla completa en la sección de flashcards
+            if (activeSection !== 'flashcard-section') {
+                showNotification('Pantalla completa solo disponible en flashcards.', 'error');
+                return;
+            }
+
             let fullscreenContainer = document.getElementById('flashcard-fullscreen-container');
             if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
                 enterFullScreen(fullscreenContainer);
@@ -794,6 +805,7 @@
             }
         }
 
+        // Cargar las flashcards
         function loadFlashcards() {
             if (selectedSet && !reviewLevel) {
                 flashcards = flashcardSets[selectedSet];
@@ -828,6 +840,7 @@
             showFlashcard();
         }
 
+        // Mostrar la flashcard actual
         function showFlashcard() {
             let container = document.getElementById('flashcard-container');
             container.innerHTML = '';
@@ -838,6 +851,7 @@
             gsap.from(flashcard, {duration: 0.5, opacity: 0, y: 50});
         }
 
+        // Función para crear una flashcard
         function createFlashcard(cardData) {
             let flashcard = document.createElement('div');
             flashcard.className = 'flashcard';
@@ -862,6 +876,11 @@
             faceIndicator.className = 'face-indicator';
             faceIndicator.innerHTML = `<i class="fas fa-question-circle"></i> Pregunta`;
             flashcard.appendChild(faceIndicator);
+
+            // Ajustar dinámicamente el tamaño del texto
+            adjustFontSize(front.querySelector('h2'));
+            adjustFontSize(back.querySelector('h2'));
+            adjustFontSize(explanation.querySelector('h2'));
 
             flashcard.addEventListener('touchstart', handleTouchStart, false);
             flashcard.addEventListener('touchmove', handleTouchMove, false);
@@ -904,6 +923,19 @@
             return flashcard;
         }
 
+        // Función para ajustar el tamaño de la fuente dinámicamente
+        function adjustFontSize(element) {
+            let maxFontSize = 28; // en px
+            let minFontSize = 16;
+            let fontSize = maxFontSize;
+            element.style.fontSize = fontSize + 'px';
+            while (element.scrollHeight > element.clientHeight && fontSize > minFontSize) {
+                fontSize -= 1;
+                element.style.fontSize = fontSize + 'px';
+            }
+        }
+
+        // Actualizar barra de progreso
         function updateProgress() {
             let progressElement = document.getElementById('progress');
             let progressValue = ((currentCardIndex + 1) / flashcards.length) * 100;
@@ -916,9 +948,12 @@
                     currentIndex: currentCardIndex
                 };
                 localStorage.setItem('progress', JSON.stringify(progress));
+                // Actualizar el conteo en la interfaz
+                document.getElementById(`progress-${selectedSet}`).innerText = `${currentReviewed}/${flashcardSets[selectedSet].length} tarjetas revisadas`;
             }
         }
 
+        // Cambiar de cara
         function flipCard(direction) {
             let flashcard = document.querySelector('.flashcard');
             let faceIndicator = flashcard.querySelector('.face-indicator');
@@ -955,7 +990,7 @@
             }});
         }
 
-        // No navegación circular
+        // Cambiar de flashcard sin navegación circular
         function changeCard(direction) {
             if (direction === 'next') {
                 if (currentCardIndex < flashcards.length - 1) {
@@ -963,6 +998,8 @@
                     currentFace = 0;
                     showFlashcard();
                     updateProgress();
+                } else {
+                    showNotification('Has llegado al final de las tarjetas.', 'info');
                 }
             } else {
                 if (currentCardIndex > 0) {
@@ -970,10 +1007,13 @@
                     currentFace = 0;
                     showFlashcard();
                     updateProgress();
+                } else {
+                    showNotification('Estás en la primera tarjeta.', 'info');
                 }
             }
         }
 
+        // Clasificar tarjeta
         function classifyCard(level) {
             let cardData = flashcards[currentCardIndex];
             let setName = cardData.setName || selectedSet;
@@ -984,6 +1024,7 @@
             showNotification(`Tarjeta clasificada como ${level}`, 'success');
         }
 
+        // Manejo de eventos táctiles
         function handleTouchStart(event) {
             touchStartY = event.touches[0].clientY;
             touchStartX = event.touches[0].clientX;
@@ -1010,6 +1051,7 @@
             }
         }
 
+        // Función para alternar tema día/noche
         function toggleTheme() {
             if (theme === 'day') {
                 document.body.classList.add('night-mode');
@@ -1025,6 +1067,7 @@
             localStorage.setItem('theme', theme);
         }
 
+        // Función para aplicar el tema al cargar
         function applyTheme() {
             if (theme === 'night') {
                 document.body.classList.add('night-mode');
@@ -1037,6 +1080,7 @@
             }
         }
 
+        // Función para mostrar notificaciones personalizadas
         function showNotification(message, type) {
             let notificationContainer = document.getElementById('notification-container');
             let notification = document.createElement('div');
@@ -1045,6 +1089,8 @@
                 notification.style.backgroundColor = '#2ECC71';
             } else if (type === 'error') {
                 notification.style.backgroundColor = '#E74C3C';
+            } else if (type === 'info') {
+                notification.style.backgroundColor = '#3498DB';
             }
             notification.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
             notificationContainer.appendChild(notification);
@@ -1059,6 +1105,7 @@
             }, 3000);
         }
 
+        // Función para regresar y limpiar el nivel de revisión
         function goBack() {
             if (document.getElementById('flashcard-section').classList.contains('active') ||
                 document.getElementById('review-level-section').classList.contains('active')) {
@@ -1071,6 +1118,7 @@
             }
         }
 
+        // Función para mostrar una sección
         function showSection(sectionId) {
             document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
             document.getElementById(sectionId).classList.add('active');
@@ -1091,6 +1139,7 @@
             }
         }
 
+        // Inicialización
         window.onload = () => {
             showSection('main-section');
             loadSets();
