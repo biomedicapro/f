@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Flashcards Médicas Personalizadas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Incluir la biblioteca GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <!-- Incluir Font Awesome para íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Incluir Google Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap">
+    <style>
+        /* Estilos generales */
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            overflow-x: hidden;
+        }
+        /* Estilos del header */
+        header {
+            background: linear-gradient(135deg, #5DADE2, #1ABC9C);
+            color: #fff;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            animation: headerBubble 6s infinite ease-in-out;
+        }
+        @keyframes headerBubble {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(50px, 50px); }
+        }
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 500;
+            z-index: 1;
+        }
+        .header-buttons {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1;
+        }
+        .header-button {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            position: relative;
+        }
+        .header-button i {
+            margin: 0;
+        }
+        /* Secciones */
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        /* Estilos del inicio de sesión eliminado */
+
+        /* Estilos del pie de página */
+        footer {
+            background-color: #2C3E50;
+            color: #fff;
+            text-align: center;
+            padding: 15px 0;
+            margin-top: 40px;
+        }
+        footer p {
+            margin: 0;
+            font-size: 16px;
+        }
+        /* Estilos de la sección principal */
+        .main-section {
+            padding: 40px 20px;
+        }
+        .profile-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            justify-content: center;
+            gap: 20px;
+        }
+        .profile-info i {
+            font-size: 80px;
+            color: #3498DB;
+        }
+        .profile-info h2 {
+            margin: 0;
+            font-weight: 500;
+            font-size: 28px;
+            color: #2C3E50;
+        }
+        /* Estilos de la lista de conjuntos */
+        .set-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .set-card {
+            background-color: #fff;
+            border-radius: 15px;
+            padding: 25px 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .set-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        .set-card i {
+            font-size: 50px;
+            color: #3498DB;
+            margin-bottom: 15px;
+        }
+        .set-card h3 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 500;
+            color: #2C3E50;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .set-card p {
+            margin: 5px 0;
+            color: #7F8C8D;
+            font-size: 16px;
+            text-align: center;
+        }
+        .set-card .button-group {
+            margin-top: auto;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .set-card button {
+            padding: 10px 15px;
+            background-color: #5DADE2;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        .set-card button:hover {
+            background-color: #3498DB;
+        }
+        .set-card button i {
+            margin-right: 8px;
+        }
+        .set-card button + button {
+            background-color: #1ABC9C;
+        }
+        .set-card button + button:hover {
+            background-color: #16A085;
+        }
+        /* Botones de clasificación */
+        .classification-options {
+            margin-top: 40px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .classification-options button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 18px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        .classification-options button i {
+            margin-right: 10px;
+        }
+        .classification-options .easy {
+            background-color: #2ECC71;
+        }
+        .classification-options .easy:hover {
+            background-color: #27AE60;
+        }
+        .classification-options .medium {
+            background-color: #F1C40F;
+        }
+        .classification-options .medium:hover {
+            background-color: #D4AC0D;
+        }
+        .classification-options .hard {
+            background-color: #E74C3C;
+        }
+        .classification-options .hard:hover {
+            background-color: #C0392B;
+        }
+        /* Estilos de la sección de flashcards */
+        .flashcard-section {
+            position: relative;
+            height: calc(100vh - 80px);
+            overflow: hidden;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #e0e0e0;
+            height: 8px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        .progress {
+            width: 0%;
+            height: 100%;
+            background-color: #5DADE2;
+            transition: width 0.3s;
+        }
+        /* Contenedor para pantalla completa */
+        .flashcard-fullscreen-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            background-color: inherit;
+        }
+        /* Contenedor de flashcards */
+        .flashcard-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            padding: 0;
+        }
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            perspective: 1000px;
+        }
+        .card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 0;
+            padding: 30px;
+            box-sizing: border-box;
+            background: linear-gradient(to bottom, #fff, #f0f0f0);
+            box-shadow: none;
+            opacity: 0;
+            z-index: 0;
+            transition: opacity 0.4s ease;
+            transform-style: preserve-3d;
+        }
+        .card.visible {
+            opacity: 1;
+            z-index: 1;
+        }
+        .card h2 {
+            margin: 0;
+            font-size: 28px;
+            color: #2C3E50;
+            text-align: center;
+            line-height: 1.4;
+        }
+        .front {
+            background-color: #3498DB;
+            color: #fff;
+        }
+        .back {
+            background-color: #2ECC71;
+            color: #fff;
+        }
+        .explanation {
+            background-color: #9B59B6;
+            color: #fff;
+        }
+        /* Clasificación */
+        .classification {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 2;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .classification button {
+            padding: 14px 22px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 18px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        .classification button i {
+            margin-right: 10px;
+        }
+        .classification .easy {
+            background-color: #2ECC71;
+        }
+        .classification .easy:hover {
+            background-color: #27AE60;
+        }
+        .classification .medium {
+            background-color: #F1C40F;
+        }
+        .classification .medium:hover {
+            background-color: #D4AC0D;
+        }
+        .classification .hard {
+            background-color: #E74C3C;
+        }
+        .classification .hard:hover {
+            background-color: #C0392B;
+        }
+        /* Indicador de cara */
+        .face-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: rgba(0,0,0,0.6);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            z-index: 2;
+        }
+        .face-indicator i {
+            margin-right: 8px;
+        }
+        /* Contenedor de notificaciones */
+        .notification-container {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        .notification {
+            background-color: #3498DB;
+            color: #fff;
+            padding: 15px 20px;
+            margin-top: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+            transition: all 0.5s ease;
+        }
+        .notification i {
+            margin-right: 12px;
+        }
+        /* Estilos para modo nocturno */
+        body.night-mode {
+            background-color: #1D1F21;
+            color: #fff;
+        }
+        body.night-mode header {
+            background: linear-gradient(135deg, #2C3E50, #1D1F21);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        body.night-mode header::after {
+            background: rgba(255,255,255,0.05);
+        }
+        body.night-mode .set-card {
+            background-color: #2C3E50;
+            color: #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        body.night-mode .set-card:hover {
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+        }
+        body.night-mode .set-card i {
+            color: #1ABC9C;
+        }
+        body.night-mode .set-card button {
+            background-color: #1ABC9C;
+        }
+        body.night-mode .set-card button:hover {
+            background-color: #16A085;
+        }
+        body.night-mode .set-card button + button {
+            background-color: #E67E22;
+        }
+        body.night-mode .set-card button + button:hover {
+            background-color: #D35400;
+        }
+        body.night-mode .card {
+            background: linear-gradient(to bottom, #2C3E50, #1D1F21);
+            box-shadow: none;
+        }
+        body.night-mode .card h2 {
+            color: #fff;
+        }
+        body.night-mode .face-indicator {
+            background-color: rgba(44,62,80,0.8);
+            color: #fff;
+        }
+        body.night-mode .front {
+            background-color: #34495E;
+        }
+        body.night-mode .back {
+            background-color: #27AE60;
+        }
+        body.night-mode .explanation {
+            background-color: #8E44AD;
+        }
+        body.night-mode .notification {
+            background-color: #27AE60;
+        }
+        body.night-mode .classification-options button,
+        body.night-mode .classification button {
+            color: #fff;
+        }
+        body.night-mode .classification-options .easy,
+        body.night-mode .classification .easy {
+            background-color: #27AE60;
+        }
+        body.night-mode .classification-options .easy:hover,
+        body.night-mode .classification .easy:hover {
+            background-color: #229954;
+        }
+        body.night-mode .classification-options .medium,
+        body.night-mode .classification .medium {
+            background-color: #D4AC0D;
+        }
+        body.night-mode .classification-options .medium:hover,
+        body.night-mode .classification .medium:hover {
+            background-color: #B7950B;
+        }
+        body.night-mode .classification-options .hard,
+        body.night-mode .classification .hard {
+            background-color: #C0392B;
+        }
+        body.night-mode .classification-options .hard:hover,
+        body.night-mode .classification .hard:hover {
+            background-color: #A93226;
+        }
+        body.night-mode .main-section h3,
+        body.night-mode footer {
+            color: #fff;
+        }
+        /* Estilos para dispositivos móviles */
+        @media (max-width: 768px) {
+            .set-list {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            .set-card {
+                width: 100%;
+            }
+            .flashcard {
+                width: 100%;
+                height: 100%;
+            }
+            .card h2 {
+                font-size: 24px;
+            }
+            .classification {
+                flex-direction: column;
+                bottom: 80px;
+            }
+            .notification-container {
+                top: auto;
+                bottom: 20px;
+                right: 50%;
+                transform: translateX(50%);
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-book-medical"></i> Flashcards Médicas</h1>
+        <div class="header-buttons">
+            <button class="header-button theme-toggle-button" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
+            <button class="header-button fullscreen-button" onclick="toggleFullScreen()"><i class="fas fa-expand"></i></button>
+            <button class="header-button logout-button" id="logout-button" style="display: none;" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </header>
+
+    <!-- Contenedor de notificaciones -->
+    <div class="notification-container" id="notification-container"></div>
+
+    <!-- Sección principal -->
+    <div class="section main-section active" id="main-section">
+        <div class="profile-info">
+            <i id="avatar" class="fas fa-user-md"></i>
+            <h2>Bienvenido</h2>
+        </div>
+        <h3>Selecciona un conjunto de flashcards</h3>
+        <div class="set-list" id="set-list">
+            <!-- Conjuntos de flashcards se cargarán dinámicamente -->
+        </div>
+    </div>
+
+    <!-- Sección para seleccionar nivel de revisión -->
+    <div class="section review-level-section" id="review-level-section">
+        <h3>Selecciona el nivel de tarjetas a revisar en <span id="review-set-name"></span></h3>
+        <div class="classification-options">
+            <button class="hard" onclick="reviewClassified('Difícil')"><i class="fas fa-frown"></i> Difíciles</button>
+            <button class="medium" onclick="reviewClassified('Medio')"><i class="fas fa-meh"></i> Medias</button>
+            <button class="easy" onclick="reviewClassified('Fácil')"><i class="fas fa-smile"></i> Fáciles</button>
+        </div>
+    </div>
+
+    <!-- Sección de flashcards -->
+    <div class="section flashcard-section" id="flashcard-section">
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+        <!-- Contenedor para pantalla completa -->
+        <div id="flashcard-fullscreen-container" class="flashcard-fullscreen-container">
+            <div class="flashcard-container" id="flashcard-container">
+                <!-- Las flashcards se generarán dinámicamente -->
+            </div>
+            <div class="classification">
+                <button class="easy" onclick="classifyCard('Fácil')"><i class="fas fa-smile"></i> Fácil</button>
+                <button class="medium" onclick="classifyCard('Medio')"><i class="fas fa-meh"></i> Medio</button>
+                <button class="hard" onclick="classifyCard('Difícil')"><i class="fas fa-frown"></i> Difícil</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie de página -->
+    <footer>
+        <p>© 2023 Flashcards Médicas Personalizadas</p>
+    </footer>
+
+    <script>
+        // Variables globales simplificadas
+        let progress = JSON.parse(localStorage.getItem('progress')) || {};
+        let classifications = JSON.parse(localStorage.getItem('classifications')) || {};
+        let theme = localStorage.getItem('theme') || 'day';
+
+        // Datos de flashcards integrados
+        let flashcardSets = {
+            'Anatomía': [
+                {question: '¿Qué hueso conecta el hombro con el codo?', answer: 'El húmero.', explanation: 'Es un hueso largo del brazo.'},
+                {question: '¿Cuántos lóbulos tiene el cerebro humano?', answer: 'Cuatro lóbulos.', explanation: 'Son: frontal, parietal, temporal y occipital.'},
+                {question: '¿Cuál es el órgano más grande del cuerpo humano?', answer: 'La piel.', explanation: 'Tiene una superficie aproximada de 2 metros cuadrados.'},
+                {question: '¿Qué tipo de articulación es la rodilla?', answer: 'Una articulación de bisagra.', explanation: 'Permite movimientos de flexión y extensión.'},
+                {question: '¿Dónde se encuentra el cúbito?', answer: 'En el antebrazo.', explanation: 'Es uno de los dos huesos que forman el antebrazo, junto con el radio.'},
+                {question: '¿Cuál es la función principal de los glóbulos rojos?', answer: 'Transportar oxígeno.', explanation: 'Llevan oxígeno a las células y eliminan dióxido de carbono.'},
+                {question: '¿Cuántos músculos tiene el cuerpo humano aproximadamente?', answer: 'Más de 600 músculos.', explanation: 'Incluyen músculos esqueléticos, lisos y cardíacos.'},
+                {question: '¿Qué órgano produce la bilis?', answer: 'El hígado.', explanation: 'La bilis ayuda en la digestión de grasas.'},
+                {question: '¿Dónde se encuentra el estribo?', answer: 'En el oído medio.', explanation: 'Es el hueso más pequeño del cuerpo humano.'},
+                {question: '¿Qué función tiene la médula espinal?', answer: 'Transmitir señales entre el cerebro y el cuerpo.', explanation: 'Es parte del sistema nervioso central.'}
+            ],
+            'Historia Universal': [
+                {question: '¿Quién fue el primer emperador romano?', answer: 'Augusto.', explanation: 'Fue el primer emperador tras la caída de la República Romana.'},
+                {question: '¿En qué año terminó la Segunda Guerra Mundial?', answer: '1945.', explanation: 'Terminó con la rendición de Alemania y Japón.'},
+                {question: '¿Qué civilización construyó las pirámides de Giza?', answer: 'Los egipcios.', explanation: 'Son monumentos funerarios de los faraones.'},
+                {question: '¿Quién pintó la Capilla Sixtina?', answer: 'Miguel Ángel.', explanation: 'La pintura del techo es una de sus obras más famosas.'},
+                {question: '¿Qué revolución marcó el inicio de la era industrial?', answer: 'La Revolución Industrial.', explanation: 'Comenzó en Inglaterra en el siglo XVIII.'},
+                {question: '¿Quién fue el líder de la independencia de India?', answer: 'Mahatma Gandhi.', explanation: 'Lideró movimientos pacíficos contra el dominio británico.'},
+                {question: '¿En qué año llegó Cristóbal Colón a América?', answer: '1492.', explanation: 'Fue un evento que marcó la historia global.'},
+                {question: '¿Qué imperio construyó la Gran Muralla China?', answer: 'El imperio Qin.', explanation: 'La muralla fue construida para protegerse de invasores.'},
+                {question: '¿Cuál fue el evento que inició la Primera Guerra Mundial?', answer: 'El asesinato del archiduque Francisco Fernando.', explanation: 'Este evento ocurrió en 1914.'},
+                {question: '¿Qué tratado puso fin a la Primera Guerra Mundial?', answer: 'El Tratado de Versalles.', explanation: 'Fue firmado en 1919.'}
+            ],
+            'Matemáticas': [
+                {question: '¿Qué es un número primo?', answer: 'Un número divisible solo por 1 y por sí mismo.', explanation: 'Ejemplos: 2, 3, 5, 7.'},
+                {question: '¿Cuál es el resultado de 7 x 8?', answer: '56.', explanation: 'Es una multiplicación básica.'},
+                {question: '¿Qué es el Teorema de Pitágoras?', answer: 'A² + B² = C².', explanation: 'Aplica en triángulos rectángulos.'},
+                {question: '¿Qué significa "π" en matemáticas?', answer: 'Es una constante que representa la relación entre la circunferencia y el diámetro.', explanation: 'Su valor es aproximadamente 3.1416.'},
+                {question: '¿Cuál es la derivada de x²?', answer: '2x.', explanation: 'Es una operación básica en cálculo diferencial.'},
+                {question: '¿Qué es un ángulo recto?', answer: 'Un ángulo de 90 grados.', explanation: 'Es un ángulo común en geometría.'},
+                {question: '¿Cuál es el valor de √64?', answer: '8.', explanation: 'Es la raíz cuadrada de 64.'},
+                {question: '¿Qué es una función lineal?', answer: 'Una función cuya gráfica es una línea recta.', explanation: 'Ejemplo: y = mx + b.'},
+                {question: '¿Cuál es el factorial de 5?', answer: '120.', explanation: 'Se calcula como 5x4x3x2x1.'},
+                {question: '¿Qué es una fracción impropia?', answer: 'Una fracción cuyo numerador es mayor que el denominador.', explanation: 'Ejemplo: 7/4.'}
+            ],
+            'Ciencias Naturales': [
+                {question: '¿Qué gas es esencial para la respiración?', answer: 'El oxígeno.', explanation: 'Es utilizado por las células para obtener energía.'},
+                {question: '¿Qué planeta es conocido como el planeta rojo?', answer: 'Marte.', explanation: 'Se debe a la presencia de óxido de hierro en su superficie.'},
+                {question: '¿Cuál es la fuente principal de energía en la Tierra?', answer: 'El Sol.', explanation: 'Proporciona luz y calor.'},
+                {question: '¿Qué estudia la botánica?', answer: 'Las plantas.', explanation: 'Es una rama de la biología.'},
+                {question: '¿Qué es el ciclo del agua?', answer: 'El movimiento continuo del agua en la Tierra.', explanation: 'Incluye evaporación, condensación y precipitación.'},
+                {question: '¿Qué órgano controla el cuerpo humano?', answer: 'El cerebro.', explanation: 'Es el centro del sistema nervioso.'},
+                {question: '¿Qué metal es líquido a temperatura ambiente?', answer: 'El mercurio.', explanation: 'Es el único metal líquido a temperatura ambiente.'},
+                {question: '¿Qué es la fotosíntesis?', answer: 'Un proceso por el cual las plantas convierten luz en energía.', explanation: 'Utilizan dióxido de carbono y agua.'},
+                {question: '¿Qué es un ecosistema?', answer: 'Una comunidad de seres vivos y su entorno.', explanation: 'Incluye factores bióticos y abióticos.'},
+                {question: '¿Cuál es el estado del agua a 100°C?', answer: 'Gaseoso.', explanation: 'A esta temperatura el agua hierve y se convierte en vapor.'}
+            ],
+            'Tecnología': [
+                {question: '¿Qué significa "HTML"?', answer: 'HyperText Markup Language.', explanation: 'Es el lenguaje estándar para crear páginas web.'},
+                {question: '¿Qué es un algoritmo?', answer: 'Un conjunto de pasos para resolver un problema.', explanation: 'Es fundamental en programación.'},
+                {question: '¿Qué significa "IoT"?', answer: 'Internet of Things.', explanation: 'Se refiere a dispositivos conectados a internet.'},
+                {question: '¿Qué es la inteligencia artificial?', answer: 'La simulación de procesos humanos por máquinas.', explanation: 'Incluye aprendizaje, razonamiento y autocorrección.'},
+                {question: '¿Qué es un sistema operativo?', answer: 'Software que gestiona el hardware y software de una computadora.', explanation: 'Ejemplos: Windows, macOS, Linux.'},
+                {question: '¿Qué significa "CSS"?', answer: 'Cascading Style Sheets.', explanation: 'Se utiliza para diseñar páginas web.'},
+                {question: '¿Qué es un lenguaje de programación?', answer: 'Un lenguaje que permite escribir instrucciones para computadoras.', explanation: 'Ejemplos: Python, Java, C++.'},
+                {question: '¿Qué es el Big Data?', answer: 'Conjunto de datos masivos y complejos.', explanation: 'Requieren tecnologías especiales para su análisis.'},
+                {question: '¿Qué significa "HTTP"?', answer: 'Hypertext Transfer Protocol.', explanation: 'Es el protocolo usado para la comunicación en la web.'},
+                {question: '¿Qué es la nube informática?', answer: 'Almacenamiento y acceso a datos en internet.', explanation: 'Ejemplos: Google Drive, Dropbox.'}
+            ]
+        };
+
+        // Función para obtener el ícono de un conjunto
+        function getSetIcon(setName) {
+            const icons = {
+                'Anatomía': 'fas fa-bone',
+                'Historia Universal': 'fas fa-landmark',
+                'Matemáticas': 'fas fa-square-root-alt',
+                'Ciencias Naturales': 'fas fa-leaf',
+                'Tecnología': 'fas fa-laptop-code',
+                // Añade más íconos si agregas nuevos conjuntos
+            };
+            return icons[setName] || 'fas fa-book';
+        }
+
+        // Función para mostrar la lista de conjuntos
+        function loadSets() {
+            let setList = document.getElementById('set-list');
+            setList.innerHTML = '';
+            for (let setName in flashcardSets) {
+                let totalReviewed = progress[setName]?.totalReviewed || 0;
+                let totalCards = flashcardSets[setName].length;
+                let card = document.createElement('div');
+                card.className = 'set-card';
+                card.innerHTML = `
+                    <i class="${getSetIcon(setName)}"></i>
+                    <h3>${setName}</h3>
+                    <p id="progress-${setName}">${totalReviewed}/${totalCards} tarjetas revisadas</p>
+                    <div class="button-group">
+                        <button onclick="selectSet('${setName}')"><i class="fas fa-book-open"></i> Estudiar</button>
+                        <button onclick="selectReviewLevel('${setName}')"><i class="fas fa-search"></i> Revisar Clasificadas</button>
+                    </div>
+                `;
+                setList.appendChild(card);
+                // Animación
+                gsap.from(card, {duration: 0.5, y: 20, opacity: 0});
+            }
+        }
+
+        // Función para seleccionar un conjunto de flashcards
+        let selectedSet = '';
+        let reviewLevel = null;
+
+        function selectSet(setName) {
+            if (setName) {
+                selectedSet = setName;
+                reviewLevel = null;
+                showSection('flashcard-section');
+                loadFlashcards();
+                applyTheme();
+            }
+        }
+
+        // Función para seleccionar el nivel de revisión
+        function selectReviewLevel(setName) {
+            if (setName) {
+                selectedSet = setName;
+                document.getElementById('review-set-name').innerText = setName;
+                showSection('review-level-section');
+                applyTheme();
+            }
+        }
+
+        // Función para revisar tarjetas clasificadas
+        function reviewClassified(level) {
+            if (selectedSet) {
+                reviewLevel = level;
+                showSection('flashcard-section');
+                loadFlashcards();
+                applyTheme();
+            }
+        }
+
+        // Función para cerrar sesión (ahora reinicia la aplicación)
+        function logout() {
+            // En esta versión simplificada, logout podría reiniciar el progreso o simplemente refrescar la página
+            if (confirm('¿Está seguro de que desea reiniciar el progreso?')) {
+                localStorage.removeItem('progress');
+                localStorage.removeItem('classifications');
+                progress = {};
+                classifications = {};
+                loadSets();
+                showSection('main-section');
+                showNotification('Progreso reiniciado.', 'success');
+            }
+        }
+
+        // Funciones para la sección de flashcards
+        let flashcards = [];
+        let currentCardIndex = 0;
+        let currentFace = 0; // 0: Pregunta, 1: Respuesta, 2: Explicación
+
+        // Variables para el manejo táctil
+        let touchStartY = 0;
+        let touchEndY = 0;
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        // Función para entrar en pantalla completa
+        function enterFullScreen(element) {
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            } else if (element.mozRequestFullScreen) { /* Firefox */
+                element.mozRequestFullScreen();
+            } else if (element.webkitRequestFullscreen) { /* Chrome, Safari y Opera */
+                element.webkitRequestFullscreen();
+            } else if (element.msRequestFullscreen) { /* IE/Edge */
+                element.msRequestFullscreen();
+            }
+        }
+
+        // Función para salir de pantalla completa
+        function exitFullScreen() {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) { /* Firefox */
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) { /* Chrome, Safari y Opera */
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) { /* IE/Edge */
+                document.msExitFullscreen();
+            }
+        }
+
+        // Función para alternar pantalla completa
+        function toggleFullScreen() {
+            let fullscreenContainer = document.getElementById('flashcard-fullscreen-container');
+            if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+                enterFullScreen(fullscreenContainer);
+                document.querySelector('.fullscreen-button i').classList.remove('fa-expand');
+                document.querySelector('.fullscreen-button i').classList.add('fa-compress');
+            } else {
+                exitFullScreen();
+                document.querySelector('.fullscreen-button i').classList.remove('fa-compress');
+                document.querySelector('.fullscreen-button i').classList.add('fa-expand');
+            }
+        }
+
+        // Cargar las flashcards
+        function loadFlashcards() {
+            if (selectedSet && !reviewLevel) {
+                flashcards = flashcardSets[selectedSet];
+                currentCardIndex = progress[selectedSet]?.currentIndex || 0;
+            } else if (selectedSet && reviewLevel) {
+                // Revisar tarjetas clasificadas del conjunto seleccionado
+                flashcards = flashcardSets[selectedSet].map((card, index) => ({...card, setName: selectedSet, originalIndex: index}));
+                flashcards = flashcards.filter((card) => {
+                    let cardKey = `${selectedSet}-${card.originalIndex}`;
+                    return classifications[cardKey] === reviewLevel;
+                });
+                currentCardIndex = 0;
+            } else if (!selectedSet && reviewLevel) {
+                // Revisar tarjetas clasificadas de todos los conjuntos
+                flashcards = [];
+                for (let setName in flashcardSets) {
+                    let setFlashcards = flashcardSets[setName].map((card, index) => ({...card, setName: setName, originalIndex: index}));
+                    setFlashcards = setFlashcards.filter((card) => {
+                        let cardKey = `${setName}-${card.originalIndex}`;
+                        return classifications[cardKey] === reviewLevel;
+                    });
+                    flashcards = flashcards.concat(setFlashcards);
+                }
+                currentCardIndex = 0;
+            }
+            if (flashcards.length === 0) {
+                showNotification('No hay tarjetas para mostrar.', 'error');
+                goBack();
+                return;
+            }
+            currentFace = 0;
+            showFlashcard();
+        }
+
+        // Mostrar la flashcard actual
+        function showFlashcard() {
+            let container = document.getElementById('flashcard-container');
+            container.innerHTML = '';
+            let cardData = flashcards[currentCardIndex];
+            let flashcard = createFlashcard(cardData);
+            container.appendChild(flashcard);
+            updateProgress();
+            // Animación de entrada
+            gsap.from(flashcard, {duration: 0.5, opacity: 0, y: 50});
+        }
+
+        // Función para crear una flashcard
+        function createFlashcard(cardData) {
+            let flashcard = document.createElement('div');
+            flashcard.className = 'flashcard';
+
+            // Caras de la tarjeta
+            let front = document.createElement('div');
+            front.className = 'card face front visible';
+            front.innerHTML = `<h2><i class="fas fa-question-circle"></i> ${cardData.question}</h2>`;
+
+            let back = document.createElement('div');
+            back.className = 'card face back';
+            back.innerHTML = `<h2><i class="fas fa-lightbulb"></i> ${cardData.answer}</h2>`;
+
+            let explanation = document.createElement('div');
+            explanation.className = 'card face explanation';
+            explanation.innerHTML = `<h2><i class="fas fa-info-circle"></i> ${cardData.explanation}</h2>`;
+
+            flashcard.appendChild(front);
+            flashcard.appendChild(back);
+            flashcard.appendChild(explanation);
+
+            // Indicador de cara
+            let faceIndicator = document.createElement('div');
+            faceIndicator.className = 'face-indicator';
+            faceIndicator.innerHTML = `<i class="fas fa-question-circle"></i> Pregunta`;
+
+            flashcard.appendChild(faceIndicator);
+
+            // Añadir eventos táctiles
+            flashcard.addEventListener('touchstart', handleTouchStart, false);
+            flashcard.addEventListener('touchmove', handleTouchMove, false);
+            flashcard.addEventListener('touchend', handleTouchEnd, false);
+
+            // Añadir evento de clic para cuadrantes
+            flashcard.addEventListener('click', handleFlashcardClick);
+
+            return flashcard;
+        }
+
+        // Actualizar barra de progreso
+        function updateProgress() {
+            let progressElement = document.getElementById('progress');
+            let progressValue = ((currentCardIndex + 1) / flashcards.length) * 100;
+            progressElement.style.width = progressValue + '%';
+            // Actualizar progreso global
+            if (selectedSet && !reviewLevel) {
+                progress[selectedSet] = {
+                    totalReviewed: Math.max(progress[selectedSet]?.totalReviewed || 0, currentCardIndex + 1),
+                    currentIndex: currentCardIndex
+                };
+                localStorage.setItem('progress', JSON.stringify(progress));
+            }
+        }
+
+        // Función para manejar clics en la flashcard dividida en cuadrantes
+        function handleFlashcardClick(event) {
+            let flashcard = event.currentTarget;
+            let rect = flashcard.getBoundingClientRect();
+            let x = event.clientX - rect.left; // posición X relativa al flashcard
+            let y = event.clientY - rect.top;  // posición Y relativa al flashcard
+
+            let width = rect.width;
+            let height = rect.height;
+
+            // Calcular en qué cuadrante se hizo clic
+            let col = Math.floor((x / width) * 3);
+            let row = Math.floor((y / height) * 3);
+
+            if (row === 1 && col === 1) {
+                // Cuadrante central - Cambiar a la siguiente cara
+                flipCard('next');
+            } else if (row === 1 && col === 0) {
+                // Fila central, columna izquierda - Cambiar a la cara anterior
+                flipCard('prev');
+            } else if (row === 1 && col === 2) {
+                // Fila central, columna derecha - Cambiar a la siguiente cara
+                flipCard('next');
+            } else if (row === 0) {
+                // Fila superior - Flashcard anterior
+                changeCard('prev');
+            } else if (row === 2) {
+                // Fila inferior - Flashcard siguiente
+                changeCard('next');
+            } else {
+                // Otros cuadrantes - Por defecto, cambiar a la siguiente cara
+                flipCard('next');
+            }
+        }
+
+        // Cambiar de cara
+        function flipCard(direction) {
+            let flashcard = document.querySelector('.flashcard');
+            let faceIndicator = flashcard.querySelector('.face-indicator');
+            let faces = flashcard.querySelectorAll('.face');
+
+            // Aplicar animación de rotación
+            let rotationY = direction === 'next' ? 90 : -90;
+            gsap.to(flashcard, {rotationY: rotationY, duration: 0.3, ease: 'power1.in', onComplete: () => {
+                // Actualizar cara actual
+                if (direction === 'next') {
+                    currentFace = (currentFace + 1) % faces.length;
+                } else {
+                    currentFace = (currentFace - 1 + faces.length) % faces.length;
+                }
+
+                // Actualizar visibilidad de las caras
+                faces.forEach((face, index) => {
+                    face.classList.remove('visible');
+                    if (index === currentFace) {
+                        face.classList.add('visible');
+                    }
+                });
+
+                // Actualizar indicador de cara
+                switch (currentFace) {
+                    case 0:
+                        faceIndicator.innerHTML = `<i class="fas fa-question-circle"></i> Pregunta`;
+                        break;
+                    case 1:
+                        faceIndicator.innerHTML = `<i class="fas fa-lightbulb"></i> Respuesta`;
+                        break;
+                    case 2:
+                        faceIndicator.innerHTML = `<i class="fas fa-info-circle"></i> Explicación`;
+                        break;
+                }
+
+                // Completar animación de rotación
+                gsap.to(flashcard, {rotationY: 0, duration: 0.3, ease: 'power1.out'});
+            }});
+        }
+
+        // Cambiar de flashcard
+        function changeCard(direction) {
+            if (direction === 'next') {
+                currentCardIndex = (currentCardIndex + 1) % flashcards.length;
+            } else {
+                currentCardIndex = (currentCardIndex - 1 + flashcards.length) % flashcards.length;
+            }
+            currentFace = 0;
+            showFlashcard();
+            updateProgress();
+        }
+
+        // Clasificar tarjeta
+        function classifyCard(level) {
+            let cardData = flashcards[currentCardIndex];
+            let setName = cardData.setName || selectedSet;
+            let originalIndex = cardData.originalIndex !== undefined ? cardData.originalIndex : currentCardIndex;
+            let cardKey = `${setName}-${originalIndex}`;
+            classifications[cardKey] = level;
+            localStorage.setItem('classifications', JSON.stringify(classifications));
+            showNotification(`Tarjeta clasificada como ${level}`, 'success');
+        }
+
+        // Manejo de eventos táctiles
+        function handleTouchStart(event) {
+            touchStartY = event.touches[0].clientY;
+            touchStartX = event.touches[0].clientX;
+        }
+        function handleTouchMove(event) {
+            touchEndY = event.touches[0].clientY;
+            touchEndX = event.touches[0].clientX;
+        }
+        function handleTouchEnd() {
+            let deltaY = touchEndY - touchStartY;
+            let deltaX = touchEndX - touchStartX;
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                // Movimiento horizontal
+                if (deltaX > 50) {
+                    flipCard('prev');
+                } else if (deltaX < -50) {
+                    flipCard('next');
+                }
+            } else {
+                // Movimiento vertical
+                if (deltaY > 50) {
+                    changeCard('prev');
+                } else if (deltaY < -50) {
+                    changeCard('next');
+                }
+            }
+        }
+
+        // Función para alternar tema día/noche
+        function toggleTheme() {
+            if (theme === 'day') {
+                document.body.classList.add('night-mode');
+                theme = 'night';
+                document.querySelector('.theme-toggle-button i').classList.remove('fa-moon');
+                document.querySelector('.theme-toggle-button i').classList.add('fa-sun');
+            } else {
+                document.body.classList.remove('night-mode');
+                theme = 'day';
+                document.querySelector('.theme-toggle-button i').classList.remove('fa-sun');
+                document.querySelector('.theme-toggle-button i').classList.add('fa-moon');
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        // Función para aplicar el tema al cargar
+        function applyTheme() {
+            if (theme === 'night') {
+                document.body.classList.add('night-mode');
+                document.querySelector('.theme-toggle-button i').classList.remove('fa-moon');
+                document.querySelector('.theme-toggle-button i').classList.add('fa-sun');
+            } else {
+                document.body.classList.remove('night-mode');
+                document.querySelector('.theme-toggle-button i').classList.remove('fa-sun');
+                document.querySelector('.theme-toggle-button i').classList.add('fa-moon');
+            }
+        }
+
+        // Función para mostrar notificaciones personalizadas
+        function showNotification(message, type) {
+            let notificationContainer = document.getElementById('notification-container');
+            let notification = document.createElement('div');
+            notification.className = 'notification';
+            if (type === 'success') {
+                notification.style.backgroundColor = '#2ECC71';
+            } else if (type === 'error') {
+                notification.style.backgroundColor = '#E74C3C';
+            }
+            notification.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
+            notificationContainer.appendChild(notification);
+            // Mostrar notificación
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            // Ocultar y eliminar notificación
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    notificationContainer.removeChild(notification);
+                }, 500);
+            }, 3000);
+        }
+
+        // Función para regresar y limpiar el nivel de revisión
+        function goBack() {
+            if (document.getElementById('flashcard-section').classList.contains('active')) {
+                reviewLevel = null;
+                selectedSet = '';
+                showSection('main-section');
+            } else if (document.getElementById('review-level-section').classList.contains('active')) {
+                showSection('main-section');
+            } else {
+                showSection('main-section');
+            }
+        }
+
+        // Función para mostrar una sección
+        function showSection(sectionId) {
+            // Ocultar todas las secciones
+            document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+            // Mostrar la sección seleccionada
+            document.getElementById(sectionId).classList.add('active');
+            // Mostrar u ocultar botones según la sección
+            if (sectionId === 'main-section') {
+                document.getElementById('logout-button').style.display = 'block';
+                document.querySelector('.header-buttons .fullscreen-button').style.display = 'block';
+            } else if (sectionId === 'flashcard-section') {
+                document.querySelector('.header-buttons .fullscreen-button').style.display = 'block';
+                document.getElementById('logout-button').style.display = 'none';
+            } else if (sectionId === 'review-level-section') {
+                document.querySelector('.header-buttons .fullscreen-button').style.display = 'block';
+                document.getElementById('logout-button').style.display = 'none';
+            } else {
+                document.getElementById('logout-button').style.display = 'none';
+                document.querySelector('.header-buttons .fullscreen-button').style.display = 'none';
+            }
+        }
+
+        // Inicialización
+        window.onload = () => {
+            showSection('main-section');
+            loadSets();
+            applyTheme();
+        };
+    </script>
+</body>
+</html>
